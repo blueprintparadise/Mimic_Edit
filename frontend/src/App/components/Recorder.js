@@ -49,6 +49,7 @@ class Recorder extends React.Component {
 		this.mediaRecorder.resume()
 	}
 
+	
 	componentDidMount () {
 		navigator.getUserMedia = (navigator.getUserMedia ||
 			navigator.mozGetUserMedia ||
@@ -88,7 +89,10 @@ class Recorder extends React.Component {
 			};
 
 			navigator.getUserMedia(constraints, onSuccess, onErr)
-		} else {
+		} else if(this.props.playPre){
+			console.log("oke")
+		}
+		else {
 			console.warn('Audio recording APIs not supported by this browser');
 			const { onMissingAPIs } = this.props;
 			if (onMissingAPIs) {

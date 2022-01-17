@@ -46,3 +46,43 @@ export const createUser = (uuid, name) => {
         }
     })
 }
+
+export const getPreviousFile = (id,uuid, prompt) => {
+    return fetch(apiRoot + `api/get_file`, {
+        method: "POST",
+        body: JSON.stringify({
+            id: id,
+            uuid: uuid,
+            prompt: prompt
+        }),
+        headers: {
+            "Content-Type": "audio/wav"
+        }
+    })
+}
+
+
+export const getPreviousMeta = (uuid, id) => {
+    return fetch(apiRoot + `api/get-last-usermodel`, {
+        method: "POST",
+        body: JSON.stringify({
+            uuid:uuid, 
+            id: id
+        }),
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+    })
+}
+
+export const getCurrentId = () => {
+    return fetch(apiRoot + `api/get-current-id`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+    })
+
+}

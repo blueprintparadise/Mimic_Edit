@@ -11,8 +11,9 @@ import spacebarSVG from "./assets/space.svg";
 import PSVG from "./assets/P.svg";
 import rightSVG from "./assets/right.svg";
 
-import { postAudio, getPrompt, getUser, createUser, getAudioLen } from "./api";
+import { postAudio, getPrompt, getUser, createUser, getAudioLen, getPreviousFile, getPreviousMeta, getCurrentId } from "./api";
 import { getUUID, getName } from "./api/localstorage";
+// import ReactPlayer from 'react-player/youtube'
 
 class Record extends Component {
   constructor(props) {
@@ -22,6 +23,10 @@ class Record extends Component {
       userCreated: false,
       shouldRecord: false,
       displayWav: false,
+      playPre: false,
+      lastId: 0,
+      lastPrompt: '',
+      reRender: true,
       blob: undefined,
       play: false,
       prompt: "*error loading prompt... is the backend running?*",
@@ -35,11 +40,13 @@ class Record extends Component {
 
     this.uuid = getUUID();
     this.name = getName();
+    // this.lastId = getCurrentId()
   }
 
   componentDidMount() {
     document.addEventListener("keydown", this.handleKeyDown, false);
     this.requestUserDetails(this.uuid);
+    this.requestLastId();
   }
 
   componentWillUnmount() {
@@ -76,7 +83,9 @@ class Record extends Component {
             onStart={() => this.shoulddisplayWav(false)}
             onStop={this.processBlob}
             gotStream={this.silenceDetection}
+            playPre={this.state.playPre}
           />
+          {/* <button onClick={this.start}>Play</button> */}
         </div>
         <div className="indicator-container">
           {this.state.shouldRecord
@@ -84,6 +93,25 @@ class Record extends Component {
             : "[Spacebar] to Start Recording [R] to review [->] for next"}
         </div>
         <div id="controls">
+          <a
+            id="btn_Play"
+            className={`btn btn-next ${
+              this.state.shouldRecord
+                ? "btn-disabled"
+                // : this.state.blob === undefined
+                // ? "btn-disabled"
+                : this.state.play
+                ? "btn-disabled"
+                : null
+            } `}
+            style={{marginRight: "20px"}}
+            // onClick={this.state.shouldRecord ? () => null : this.playPre}
+            onClick={this.start}
+          >
+            <i className="fas fa-backward ibutton" />
+            Back
+          </a>
+
           <a
             id="btn_Play"
             className={`btn btn-play ${
@@ -96,6 +124,7 @@ class Record extends Component {
                 : null
             } `}
             onClick={this.state.shouldRecord ? () => null : this.state.play ? () => null : this.playWav}
+            // onClick={this.start}
           >
             <i className="fas fa-play ibutton" />
             Review
@@ -152,6 +181,34 @@ class Record extends Component {
     });
   };
 
+  start = () => {
+    getPreviousMeta(this.uuid, this.state.lastId)
+    .then(response => response.json())
+    .then(res => {
+      this.setState({
+        prompt: res.prompt,
+      })
+      this.shoulddisplayWav(false);
+      getPreviousFile(this.state.lastId, this.uuid, res.prompt)
+      .then(function (response){
+        return response.blob();
+      })
+      .then(res => {
+        console.log("res: ",this.state.blob)
+        this.setState({
+          blob: res,
+          lastId: this.state.lastId - 1,
+          promptNum: this.state.promptNum - 1,
+          reRender: !this.state.reRender
+        });
+        this.shoulddisplayWav(true);
+      })
+      .catch((error) => {
+        console.log("error: ",error)
+      })
+    })
+  }
+
   requestPrompts = uuid => {
     getPrompt(uuid)
       .then(res => res.json())
@@ -165,6 +222,23 @@ class Record extends Component {
         }
       });
   };
+
+  requestLastId = () => {
+    getCurrentId().then(response => {
+      return response.json()
+    })
+    .then(response => {
+      this.setState({
+        lastId: response.id,
+        lastPrompt: response.prompt
+      })
+      return response.id
+    })
+    .catch(error => {
+        console.log('Some error')
+    })
+    console.log("this.lastId: ", this.lastId);
+  }
 
   requestUserDetails = uuid => {
     getUser(uuid)
@@ -205,10 +279,12 @@ class Record extends Component {
       blob={this.state.blob}
       play={this.state.play}
       onFinish={this.stopWav}
+      reRender={this.state.reRender}
     />
   );
 
   renderVisualizer = () => (
+    // <h1>Abc</h1>
     <Visualizer
       className="wavedisplay"
       record={this.state.shouldRecord}
@@ -218,12 +294,15 @@ class Record extends Component {
   );
 
   processBlob = blob => {
+    console.log("bobbb: ", blob)
     getAudioLen(this.uuid, blob)
       .then(res => res.json())
-      .then(res =>
-        this.setState({
-          audioLen: res.data.audio_len
-        })
+      .then(res =>{
+        console.log(res.data.audio_len)
+          this.setState({
+            audioLen: res.data.audio_len
+          })
+        }
       );
     this.setState({
       blob: blob
@@ -239,16 +318,32 @@ class Record extends Component {
 
   stopWav = () => this.setState({ play: false });
 
+  playPre = () => {
+    getPreviousFile(this.uuid, this.state.blob)
+    .then(function (response){
+      return response.blob();
+    })
+    .then((res)=>{
+      this.setState({
+        blob: res
+      })
+      return res;
+    })
+    .catch((error) => {
+      console.log("error")
+    })
+  }
+
   handleKeyDown = event => {
     console.log(this.uuid,"hello");
     // space bar code
-    // if (event.keyCode === 32) {
+    if (event.keyCode === 32) {
     // if (this.speak === true) {
       if (!this.state.shouldRecord) {
         event.preventDefault();
         this.recordHandler();
       }
-    // }
+    }
 
     // esc key code
     // if (event.keyCode === 27) {
@@ -293,7 +388,6 @@ class Record extends Component {
   listenAudio = () => {
     // alert("Hello world");
      let utterance = new SpeechSynthesisUtterance(this.state.prompt);
-     console.log(utterance);
      speechSynthesis.speak(utterance);
   }
   onNext = () => {
