@@ -6,7 +6,8 @@ class Wave extends Component {
     componentDidMount() {
         document.addEventListener("keydown", this.handleKeyDown, false);
 
-        const { waveColor, blob } = this.props;
+        const { waveColor, blob, reRender } = this.props;
+        console.log('this.props.blob ',this.props.blob, " ", reRender);
         this.wavesurfer = WaveSurfer.create({
             container: "#waveform",
             waveColor: waveColor ? waveColor : "#FD9E66"

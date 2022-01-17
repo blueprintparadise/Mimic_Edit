@@ -8,7 +8,8 @@ import os
 from subprocess import DEVNULL
 from .protocol import response
 
-corpus_name = os.environ["CORPUS"]
+# corpus_name = os.environ["CORPUS"]
+corpus_name = 'word_corpus.csv'
 
 prompts_dir = prompts_path = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
@@ -23,7 +24,7 @@ prompts_path = os.path.join(
 
 audio_dir = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    "../audio_files/"
+    "audio_files/"
 )
 os.makedirs(audio_dir, exist_ok=True)
 
@@ -38,7 +39,7 @@ class AudioFS:
 
     @staticmethod
     def save_audio(path: str, audio: bytes):
-        webm_file_name = path + ".webm"
+        webm_file_name = path 
         with open(webm_file_name, 'wb+') as f:
             f.write(audio)
         subprocess.call(
@@ -47,7 +48,7 @@ class AudioFS:
             ),
             shell=True
         )
-        os.remove(webm_file_name)
+        # os.remove(webm_file_name)
 
     @staticmethod
     def save_meta_data(user_audio_dir, uuid, wav_file_id, prompt):

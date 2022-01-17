@@ -157,3 +157,41 @@ class DB:
     #         return response(True, data=data)
     #     else:
     #         return response(False)
+
+    @staticmethod
+    def get_usermodel(uuid, id):
+        try:
+            # obj = DB.AudioModel.select().order_by(DB.AudioModel.id.desc()).get()
+            obj = DB.AudioModel.get(AudioModel.id == id)
+            user = DB.UserModel.get(UserModel.uuid == uuid)
+            if user:
+                data =  {
+                    'id': obj.id,
+                    'audio_id': obj.audio_id,
+                    'uuid': obj.user_id,
+                    'prompt': obj.prompt
+                }
+                return data
+            else:
+                return response(
+                    False,
+                    message="some error"
+                )
+        except Exception as e:
+            print(e)
+            return response(False, message="Exception thrown, check logs")        
+
+    @staticmethod
+    def get_current_id():
+        try:
+            obj = DB.AudioModel.select().order_by(DB.AudioModel.id.desc()).get()
+            data =  {
+                'id': obj.id,
+                'audio_id': obj.audio_id,
+                'uuid': obj.user_id,
+                'prompt': obj.prompt
+            }
+            return data
+        except Exception as e:
+            print(e)
+            return response(False, message="Exception thrown, check logs")    

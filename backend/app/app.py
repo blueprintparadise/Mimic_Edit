@@ -1,7 +1,10 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from flask.views import MethodView
 from flask_cors import CORS
 from .api import UserAPI, PromptAPI, AudioAPI
+from .file_system import audio_dir
+from .db import DB
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -99,3 +102,31 @@ app.add_url_rule(
     view_func=prompt_view,
     methods=['GET']
 )
+
+# Here my changes
+@app.route('/api/get_file', methods=['POST'])
+def post_file():
+    prompt = json.loads(request.data).get('prompt')
+    id = json.loads(request.data).get('id')
+    uuid = json.loads(request.data).get('uuid')
+    path_to_file = f"{audio_dir}{uuid}/{prompt}.wav"
+    print("uuid, id: ",prompt," ", id, " ", uuid, " ", path_to_file)
+    return send_file(
+        path_to_file,
+        mimetype="audio/wav", 
+        as_attachment=True, 
+        attachment_filename=f"{prompt}.wav")
+
+
+@app.route('/api/get-last-usermodel', methods=['POST'])
+def get_usermodel():
+    # import pdb; pdb.set_trace()
+    uuid = request.get_json().get('uuid')
+    id = request.get_json().get('id')
+    return DB.get_usermodel(uuid, id)
+
+
+@app.route('/api/get-current-id', methods=['POST'])
+def get_current_id():
+    print("hello")
+    return DB.get_current_id()
