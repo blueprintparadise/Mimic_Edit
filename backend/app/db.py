@@ -121,7 +121,7 @@ class DB:
             query.execute()
             return response(True)
         except Exception as e:
-            print(e)
+            # print(e)
             response(False)
 
     @staticmethod
@@ -143,7 +143,7 @@ class DB:
                     message="user %s does not exist" % uuid
                 )
         except Exception as e:
-            print(e)
+            # print(e)
             return response(False, message="Exception thrown, check logs")
 
     # # TODO: should we add prompt in database?
@@ -178,7 +178,7 @@ class DB:
                     message="some error"
                 )
         except Exception as e:
-            print(e)
+            # print(e)
             return response(False, message="Exception thrown, check logs")        
 
     @staticmethod
@@ -191,7 +191,14 @@ class DB:
                 'uuid': obj.user_id,
                 'prompt': obj.prompt
             }
+            print("data: ",data)
             return data
         except Exception as e:
-            print(e)
-            return response(False, message="Exception thrown, check logs")    
+            data = {
+                'id': 0,
+                'audio_id': None,
+                'uuid': None,
+                'prompt': '',
+                'message': "model empty"
+            }
+            return data

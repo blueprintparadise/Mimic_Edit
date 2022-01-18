@@ -35,7 +35,8 @@ class Record extends Component {
       totalTime: 0,
       totalCharLen: 0,
       audioLen: 0,
-      showPopup: true
+      showPopup: true,
+      backFlag: false
     };
 
     this.uuid = getUUID();
@@ -131,8 +132,12 @@ class Record extends Component {
           </a>
           <a
             id="btn-speak"
-            className = " btn btn-speak"
-            onClick={this.handleKeyDown}
+            className = {`btn btn-speak ${
+              this.state.backFlag
+              ? "btn-disabled"
+              : ""
+            }`}
+            onClick={this.state.backFlag ? () => null :this.handleStartStop}
           >
             <i
             className={`fas  ibutton ${
@@ -188,19 +193,22 @@ class Record extends Component {
       this.setState({
         prompt: res.prompt,
       })
+      this.setState({
+        backFlag: true
+      })
       this.shoulddisplayWav(false);
       getPreviousFile(this.state.lastId, this.uuid, res.prompt)
       .then(function (response){
         return response.blob();
       })
       .then(res => {
-        console.log("res: ",this.state.blob)
         this.setState({
           blob: res,
           lastId: this.state.lastId - 1,
           promptNum: this.state.promptNum - 1,
           reRender: !this.state.reRender
         });
+        console.log("data: ",this.state.lastId, this.state.promptNum)
         this.shoulddisplayWav(true);
       })
       .catch((error) => {
@@ -232,12 +240,12 @@ class Record extends Component {
         lastId: response.id,
         lastPrompt: response.prompt
       })
+      console.log("this.lastId: ", this.state.lastId);
       return response.id
     })
     .catch(error => {
-        console.log('Some error')
+        console.log('Model empty')
     })
-    console.log("this.lastId: ", this.lastId);
   }
 
   requestUserDetails = uuid => {
@@ -334,19 +342,35 @@ class Record extends Component {
     })
   }
 
-  handleKeyDown = event => {
-    console.log(this.uuid,"hello");
-    // space bar code
-    if (event.keyCode === 32) {
-    // if (this.speak === true) {
-      if (!this.state.shouldRecord) {
-        event.preventDefault();
-        this.recordHandler();
-      }
+  handleStartStop = event => {
+    if (!this.state.shouldRecord) {
+      event.preventDefault();
+      this.recordHandler();
     }
+    this.setState({
+      shouldRecord: false,
+      displayWav: false,
+      blob: undefined,
+      // promptNum: 0,
+      totalTime: 0,
+      totalCharLen: 0,
+      audioLen: 0,
+      play: false
+    });
+
+  }
+  handleKeyDown = event => {
+    // space bar code
+    // if (event.keyCode === 32) {
+    // // if (this.speak === true) {
+    //   if (!this.state.shouldRecord) {
+    //     event.preventDefault();
+    //     this.recordHandler();
+    //   }
+    // }
 
     // esc key code
-    // if (event.keyCode === 27) {
+    if (event.keyCode === 27) {
       event.preventDefault();
 
       // resets all states
@@ -354,13 +378,13 @@ class Record extends Component {
         shouldRecord: false,
         displayWav: false,
         blob: undefined,
-        promptNum: 0,
+        // promptNum: 0,
         totalTime: 0,
         totalCharLen: 0,
         audioLen: 0,
         play: false
       });
-    // }
+    }
     // play wav
     if (event.keyCode === 82) {
       this.playWav();
@@ -391,14 +415,34 @@ class Record extends Component {
      speechSynthesis.speak(utterance);
   }
   onNext = () => {
-    if (this.state.blob !== undefined) {
-      postAudio(this.state.blob, this.state.prompt, this.uuid)
+    // this.requestLastId();
+    // console.log("on next : ", this.state.lastId, this.state.promptNum)
+    // if(this.state.lastId !== this.state.promptNum){
+    //   if (this.state.blob !== undefined) {
+    //     postAudio(this.state.blob, this.state.prompt, this.uuid, this.state.promptNum + 1)
+    //     .then(res => res.json())
+    //     .then(res => {
+    //       if (res.success) {
+    //         this.setState({ displayWav: false });
+    //         this.requestPrompts(this.uuid);
+    //         this.requestUserDetails(this.uuid);
+    //         this.setState({
+    //           blob: undefined,
+    //           audioLen: 0
+    //         });
+    //       } else {
+    //         alert("There was an error in saving that audio");
+    //       }
+    //     })
+    //     .catch(err => console.log(err));
+    //   }
+    //   return;
+    // }
+    this.requestLastId();
+    if (this.state.blob !== undefined && this.state.backFlag !== true) {
+      postAudio(this.state.blob, this.state.prompt, this.uuid, this.state.lastId)
         .then(res => res.json())
         .then(res => {
-        console.log(res);
-        console.log(this.state.blob ,"blob");
-            console.log(this.state.prompt ,"prompt");
-            console.log(this.uuid,"uuid");
           if (res.success) {
             this.setState({ displayWav: false });
             this.requestPrompts(this.uuid);
@@ -407,11 +451,24 @@ class Record extends Component {
               blob: undefined,
               audioLen: 0
             });
+            this.setState({
+              lastId: this.state.lastId + 1
+            })
           } else {
             alert("There was an error in saving that audio");
           }
         })
         .catch(err => console.log(err));
+    } else if(this.state.backFlag === true){
+      this.setState({ displayWav: false });
+      // this.setState({shouldRecord:true})
+      this.setState({backFlag: false});
+      this.requestPrompts(this.uuid);
+      this.requestUserDetails(this.uuid);
+      this.setState({
+        blob: undefined,
+        audioLen: 0
+      });
     }
     else{
       this.setState({ displayWav: false });
