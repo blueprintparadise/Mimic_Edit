@@ -53,12 +53,19 @@ class Audio(MethodView):
             return jsonify(success=True, data=res.data)
         else:
             return jsonify(success=False, message="error occured in server")
+    
+    def update_audio(uuid, prompt, data, last_id):
+        pass
 
     def post(self):
         data = request.data
         uuid = request.args.get('uuid')
         prompt = request.args.get('prompt')
         get_len = request.args.get('get_len')
+        # last_id = request.args.get('last_id')
+        # if uuid and prompt and last_id:
+        #     print("im here")
+        #     return self.update_audio(uuid, prompt, data)
         if uuid and prompt:
             return self.save_audio(uuid, prompt, data)
         elif uuid and get_len:
@@ -123,10 +130,10 @@ def get_usermodel():
     # import pdb; pdb.set_trace()
     uuid = request.get_json().get('uuid')
     id = request.get_json().get('id')
+    print("get meta data: ", uuid, " ", id)
     return DB.get_usermodel(uuid, id)
 
 
 @app.route('/api/get-current-id', methods=['POST'])
 def get_current_id():
-    print("hello")
     return DB.get_current_id()
