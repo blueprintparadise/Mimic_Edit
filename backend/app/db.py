@@ -111,9 +111,10 @@ class DB:
     @staticmethod
     def update_user_metrics(uuid: str, time: float, char_len: int) -> response:
         try:
+            obj = DB.AudioModel.select().order_by(DB.AudioModel.id.desc()).get()
             query = UserModel \
                 .update(
-                    prompt_num=UserModel.prompt_num + 1,
+                    prompt_num=obj.id,
                     total_time_spoken=UserModel.total_time_spoken + time,
                     len_char_spoken=UserModel.len_char_spoken + char_len
                 ) \
@@ -129,7 +130,12 @@ class DB:
                    language: str, uuid: str) -> response:
         try:
             user = DB.UserModel.get(UserModel.uuid == uuid)
-            if user:
+            audio = None
+            try:
+                audio = DB.AudioModel.get(AudioModel.prompt == prompt)
+            except:
+                pass
+            if user and not audio:
                 DB.AudioModel.create(
                     audio_id=audio_id,
                     prompt=prompt,
@@ -139,11 +145,11 @@ class DB:
                 return response(True)
             else:
                 return response(
-                    False,
-                    message="user %s does not exist" % uuid
+                    True,
+                    message="audio already exist, update new audio"
                 )
         except Exception as e:
-            # print(e)
+            print(e)
             return response(False, message="Exception thrown, check logs")
 
     # # TODO: should we add prompt in database?
@@ -174,12 +180,12 @@ class DB:
                 return data
             else:
                 return response(
-                    False,
+                    True,
                     message="some error"
                 )
         except Exception as e:
             # print(e)
-            return response(False, message="Exception thrown, check logs")        
+            return response(True, message="Exception thrown, check logs")        
 
     @staticmethod
     def get_current_id():

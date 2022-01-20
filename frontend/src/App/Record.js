@@ -36,7 +36,8 @@ class Record extends Component {
       totalCharLen: 0,
       audioLen: 0,
       showPopup: true,
-      backFlag: false
+      backFlag: false,
+      forwardFlag: false
     };
 
     this.uuid = getUUID();
@@ -103,11 +104,14 @@ class Record extends Component {
                 // ? "btn-disabled"
                 : this.state.play
                 ? "btn-disabled"
-                : null
+                : this.state.promptNum !== 0
+                ? ''
+                : 'btn-disabled'
+
             } `}
             style={{marginRight: "20px"}}
             // onClick={this.state.shouldRecord ? () => null : this.playPre}
-            onClick={this.start}
+            onClick={this.state.promptNum !== 0 ? this.start : () => null}
           >
             <i className="fas fa-backward ibutton" />
             Back
@@ -132,12 +136,14 @@ class Record extends Component {
           </a>
           <a
             id="btn-speak"
-            className = {`btn btn-speak ${
-              this.state.backFlag
-              ? "btn-disabled"
-              : ""
-            }`}
-            onClick={this.state.backFlag ? () => null :this.handleStartStop}
+            className = " btn btn-speak"
+            onClick={this.handleStartStop}
+            // className = {`btn btn-speak ${
+            //   this.state.backFlag
+            //   ? "btn-disabled"
+            //   : ""
+            // }`}
+            // onClick={this.state.backFlag ? () => null :this.handleStartStop}
           >
             <i
             className={`fas  ibutton ${
@@ -187,6 +193,11 @@ class Record extends Component {
   };
 
   start = () => {
+    // this.setState({
+    //   lastId: this.state.lastId - 1,
+    //   promptNum: this.state.promptNum - 1
+    // });
+    console.log("data: ",this.state.lastId)
     getPreviousMeta(this.uuid, this.state.lastId)
     .then(response => response.json())
     .then(res => {
@@ -232,6 +243,23 @@ class Record extends Component {
   };
 
   requestLastId = () => {
+    getCurrentId().then(response => {
+      return response.json()
+    })
+    .then(response => {
+      this.setState({
+        lastId: response.id,
+        lastPrompt: response.prompt
+      })
+      console.log("this.lastId: ", this.state.lastId);
+      return response.id
+    })
+    .catch(error => {
+        console.log('Model empty')
+    })
+  }
+
+  requestNextId = () => {
     getCurrentId().then(response => {
       return response.json()
     })
@@ -415,47 +443,64 @@ class Record extends Component {
      speechSynthesis.speak(utterance);
   }
   onNext = () => {
-    // this.requestLastId();
-    // console.log("on next : ", this.state.lastId, this.state.promptNum)
-    // if(this.state.lastId !== this.state.promptNum){
-    //   if (this.state.blob !== undefined) {
-    //     postAudio(this.state.blob, this.state.prompt, this.uuid, this.state.promptNum + 1)
-    //     .then(res => res.json())
-    //     .then(res => {
-    //       if (res.success) {
-    //         this.setState({ displayWav: false });
-    //         this.requestPrompts(this.uuid);
-    //         this.requestUserDetails(this.uuid);
-    //         this.setState({
-    //           blob: undefined,
-    //           audioLen: 0
-    //         });
-    //       } else {
-    //         alert("There was an error in saving that audio");
-    //       }
-    //     })
-    //     .catch(err => console.log(err));
-    //   }
-    //   return;
-    // }
+    let currentId = this.state.lastId;
     this.requestLastId();
-    if (this.state.blob !== undefined && this.state.backFlag !== true) {
+    console.log("last Id: ===", currentId, this.state.lastId);
+    if (this.state.blob !== undefined) {
       postAudio(this.state.blob, this.state.prompt, this.uuid, this.state.lastId)
         .then(res => res.json())
         .then(res => {
           if (res.success) {
-            this.setState({ displayWav: false });
-            this.requestPrompts(this.uuid);
-            this.requestUserDetails(this.uuid);
-            this.setState({
-              blob: undefined,
-              audioLen: 0
-            });
-            this.setState({
-              lastId: this.state.lastId + 1
-            })
+            if(currentId === this.state.lastId - 1 || currentId > this.state.lastId - 1 ){
+              this.requestLastId();
+              this.setState({ displayWav: false });
+              this.requestPrompts(this.uuid);
+              this.requestUserDetails(this.uuid);
+              this.setState({
+                blob: undefined,
+                audioLen: 0
+              });
+              if(this.state.backFlag !== true){
+                this.setState({
+                  lastId: this.state.lastId + 1
+                })
+              }
+            } else{
+              if (this.state.backFlag === true){
+                currentId = currentId + 1;
+              }
+              getPreviousMeta(this.uuid, currentId + 1)
+              .then(response => response.json())
+              .then(res => {
+                this.setState({
+                  prompt: res.prompt,
+                })
+                this.setState({
+                  backFlag: false
+                })
+                this.shoulddisplayWav(false);
+                getPreviousFile(this.state.lastId, this.uuid, res.prompt)
+                .then(function (response){
+                  return response.blob();
+                })
+                .then(res => {
+                  this.setState({
+                    blob: res,
+                    lastId: currentId + 1,
+                    // lastId: this.state.lastId + 1,
+                    promptNum: this.state.promptNum + 1,
+                    reRender: !this.state.reRender
+                  });
+                  console.log("data: ",this.state.lastId, this.state.promptNum)
+                  this.shoulddisplayWav(true);
+                })
+                .catch((error) => {
+                  console.log("error: ",error)
+                })
+              })
+            }
           } else {
-            alert("There was an error in saving that audio");
+            console.log("Write new audio file");
           }
         })
         .catch(err => console.log(err));
