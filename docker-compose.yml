@@ -5,18 +5,18 @@ services:
     build:
       context: ./backend/
     ports:
-     - "8000:8000"
+     - "5000:5000"
     volumes: 
      - ./backend/:/src
     environment:
     - CORPUS=word_corpus.csv
-    - APIPORT=8000
+    - APIPORT=5000
     - WEBWORKERS=1
   frontend:
     container_name: mrs-frontend
     build:
       context: ./frontend/
     ports:
-     - "8080:8080"
+     - "3000:3000"
     volumes:
      - ./frontend/:/src
