@@ -117,7 +117,7 @@ def post_file():
     id = json.loads(request.data).get('id')
     uuid = json.loads(request.data).get('uuid')
     path_to_file = f"{audio_dir}{uuid}/{prompt}.wav"
-    print("uuid, id: ",prompt," ", id, " ", uuid, " ", path_to_file)
+    # print("uuid, id: ",prompt," ", id, " ", uuid, " ", path_to_file)
     return send_file(
         path_to_file,
         mimetype="audio/wav", 
