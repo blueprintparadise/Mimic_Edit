@@ -10,7 +10,7 @@ services:
      - ./backend/:/src
     environment:
     - CORPUS=word_corpus.csv
-    - APIPORT=5000
+    - APIPORT=8000
     - WEBWORKERS=1
   frontend:
     container_name: mrs-frontend
