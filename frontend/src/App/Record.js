@@ -371,6 +371,7 @@ class Record extends Component {
   }
 
   handleStartStop = event => {
+
     if (!this.state.shouldRecord) {
       event.preventDefault();
       this.recordHandler();
@@ -389,13 +390,20 @@ class Record extends Component {
   }
   handleKeyDown = event => {
     // space bar code
-    // if (event.keyCode === 32) {
-    // // if (this.speak === true) {
-    //   if (!this.state.shouldRecord) {
-    //     event.preventDefault();
-    //     this.recordHandler();
-    //   }
-    // }
+    if (!this.state.shouldRecord) {
+      event.preventDefault();
+      this.recordHandler();
+    }
+    this.setState({
+      shouldRecord: false,
+      displayWav: false,
+      blob: undefined,
+      // promptNum: 0,
+      totalTime: 0,
+      totalCharLen: 0,
+      audioLen: 0,
+      play: false
+    });
 
     // esc key code
     if (event.keyCode === 27) {
