@@ -565,13 +565,14 @@ class TopContainer extends Component {
                 <img src={spacebarSVG} className="key-icon" alt="space" /> will
                 start recording
               </li>
-              <li>Recording will auto-stop after you speak</li>
+              <li>------------------</li>
               <li>
                 <img src={PSVG} className="key-icon" alt="p" /> -------
+                --------
               </li>
               <li>
-                <img src={rightSVG} className="key-icon" alt="->" /> will go to
-                next prompt
+                <img src={rightSVG} className="key-icon" alt="->" /> ----------
+                -----
               </li>
             </ul>
           </div>
