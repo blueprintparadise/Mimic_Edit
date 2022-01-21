@@ -92,7 +92,7 @@ class Record extends Component {
         <div className="indicator-container">
           {this.state.shouldRecord
             ? "Read Now [Esc] to cancel"
-            : "[Spacebar] to Start Recording [R] to review [->] for next"}
+            : "[Spacebar] to Start Recording "}
         </div>
         <div id="controls">
           <a
