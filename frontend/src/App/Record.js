@@ -568,10 +568,6 @@ class TopContainer extends Component {
               </li>
               <li>Recording will auto-stop after you speak</li>
               <li>
-                <img src={PSVG} className="key-icon" alt="p" /> will play
-                recorded audio
-              </li>
-              <li>
                 <img src={rightSVG} className="key-icon" alt="->" /> will go to
                 next prompt
               </li>
