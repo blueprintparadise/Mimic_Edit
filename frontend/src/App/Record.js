@@ -107,7 +107,6 @@ class Record extends Component {
                 : this.state.promptNum !== 0
                 ? ''
                 : 'btn-disabled'
-
             } `}
             style={{marginRight: "20px"}}
             // onClick={this.state.shouldRecord ? () => null : this.playPre}
@@ -567,6 +566,9 @@ class TopContainer extends Component {
                 start recording
               </li>
               <li>Recording will auto-stop after you speak</li>
+              <li>
+                <img src={PSVG} className="key-icon" alt="p" /> -------
+              </li>
               <li>
                 <img src={rightSVG} className="key-icon" alt="->" /> will go to
                 next prompt
